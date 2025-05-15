@@ -238,7 +238,7 @@ class StationIdentity:
         return cls(name, slogan)
 
 class AIRadioStation:
-    def __init__(self, ace_step_pipeline: ACEStepPipeline, model_path: str = "gemma-3-12b-it-abliterated.q4_k_m"):
+    def __init__(self, ace_step_pipeline: ACEStepPipeline, model_path: str = "gemma-3-12b-it-abliterated.q4_k_m", ollama: False):
         """
         Initialize the AI Radio Station with continuous generation.
         
@@ -249,6 +249,7 @@ class AIRadioStation:
         self._pipeline = ace_step_pipeline  # Store the original pipeline reference
         self.random_mode = False 
         self.llm_model_path = model_path
+        self.ollama = ollama
         self.llm = None
         self._first_play = True  
         self.pipeline_args = {
@@ -286,26 +287,31 @@ class AIRadioStation:
         self.unload_llm()
         gc.collect()
         if self.llm is None:
-            print("Loading LLM model...")
-            try:
-                from llama_cpp import Llama
-                self.llm = Llama(
-                    model_path=self.llm_model_path,
-                    n_ctx=2048,
-                    n_threads=4,
-                    n_gpu_layers=-1,
-                    seed = -1 # random seed for random lyrics 
+            if self.ollama:
+                import ollama
+                self.llm = True
+            else:
+                print("Loading LLM model...")
+                try:
+                    from llama_cpp import Llama
+                    self.llm = Llama(
+                        model_path=self.llm_model_path,
+                        n_ctx=2048,
+                        n_threads=4,
+                        n_gpu_layers=-1,
+                        seed = -1 # random seed for random lyrics
 
-                )
-            except ImportError:
-                print("Warning: llama-cpp-python not installed, using simple lyric generation")
-                self.llm = None
+                    )
+                except ImportError:
+                    print("Warning: llama-cpp-python not installed, using simple lyric generation")
+                    self.llm = None
 
     def unload_llm(self):
         """Unload the LLM model from memory"""
         if self.llm is not None:
-            print("Unloading LLM model...")
-            del self.llm
+            if not self.ollama:
+                print("Unloading LLM model...")
+                del self.llm
             self.llm = None
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
@@ -742,17 +748,28 @@ class AIRadioStation:
                     
                     if self.llm:  # Check if load was successful
                         print(f"Using LLM for lyric generation (attempt {retry_count + 1}/{max_retries + 1})...")
-                        output = self.llm(
-                            prompt,
-                            max_tokens=700,
-                            temperature=0.7,
-                            top_p=0.9,
-                            repeat_penalty=1.1,
-                            stop=["[End]", "\n\n\n"],
-                            echo=False,
-                            seed=-1
-                        )
-                        
+                        if self.ollama:
+                            output = ollama.chat(
+                                model=self.llm_model_path,
+                                messages=[
+                                    {
+                                        'role': 'user',
+                                        'content': prompt,
+                                    },
+                                ]
+                            )
+                        else:
+                            output = self.llm(
+                                prompt,
+                                max_tokens=700,
+                                temperature=0.7,
+                                top_p=0.9,
+                                repeat_penalty=1.1,
+                                stop=["[End]", "\n\n\n"],
+                                echo=False,
+                                seed=-1
+                            )
+
                         lyrics = output["choices"][0]["text"].strip()
                         print(f"Generated lyrics:\n{lyrics}")
                         
@@ -1413,6 +1430,8 @@ def main():
                        help="Use bfloat16 precision")
     parser.add_argument("--torch_compile", default=False,
                        help="Enable torch compilation for faster inference")
+    parser.add_argument("--ollama", default=False,
+                       help="Enable Ollama for lyric generation")
     args = parser.parse_args()
     
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.device_id)
@@ -1430,7 +1449,8 @@ def main():
     print("Initializing AI Radio Station...")
     radio = AIRadioStation(
         ace_step_pipeline=pipeline,
-        model_path=args.model_path
+        model_path=args.model_path,
+        ollama=args.ollama
     )
     
     # Create and launch interface

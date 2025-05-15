@@ -20,19 +20,20 @@ UPDATE 11/5/2025: Major memory optimization achieved! RTX 3060 12GB can now stre
 
  If your computer struggles to stream songs continuously, increasing the buffer size will result in a longer initial delay but fewer gaps between songs (until the buffer is depleted again).
 
+  ---
+ 
+ ## Requirements for lyric generation (LLM)
+
+### Default: `llama-cpp-python`
 
 By default the app attempts to load the model file gemma-3-12b-it-abliterated.q4_k_m.gguf from the same directory. However, you can also use alternative LLMs. Note that the quality of generated lyrics will vary depending on the LLM's capabilities.
  
-  ---
- 
- ## Requirements
- 
- To run this project, you need the `llama-cpp-python` library. Install it using the following command:
+To run this project, you need the `llama-cpp-python` library. Install it using the following command:
  
  ```bash
  pip install llama-cpp-python
  ```
-### CPU vs GPU Usage
+#### CPU vs GPU Usage
  
 By default, `llama-cpp-python` uses the CPU for processing, which is suitable if you have limited VRAM. However, setting up GPU acceleration can significantly improve performance.
  
@@ -42,9 +43,15 @@ I successfully configured GPU support (on Windows) using:
  
 For more details on setting up GPU acceleration (on Windows), refer to the following resource:  
 [llama-cpp-python-cu128-gemma3 Releases](https://github.com/boneylizard/llama-cpp-python-cu128-gemma3/releases)
+
+### Alternative: `Ollama`
+
+For using Ollama, add the following command line arguments:
+- `--ollama`
+- `--model_path <Ollama model name>`, e.g. `--model_path gemma3:12b-it-q4_K_M`
  
 ---
-### How to Launch the Application
+## How to Launch the Application
 Once your environment is set up, you can launch the application by running the following command:
 ```bash
 python radio_gradio.py
