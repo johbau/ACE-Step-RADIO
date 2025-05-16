@@ -238,13 +238,14 @@ class StationIdentity:
         return cls(name, slogan)
 
 class AIRadioStation:
-    def __init__(self, ace_step_pipeline: ACEStepPipeline, model_path: str = "gemma-3-12b-it-abliterated.q4_k_m", ollama: False):
+    def __init__(self, ace_step_pipeline: ACEStepPipeline, model_path: str = "gemma-3-12b-it-abliterated.q4_k_m", ollama: bool = False):
         """
         Initialize the AI Radio Station with continuous generation.
         
         Args:
             ace_step_pipeline: Initialized ACEStepPipeline for music generation
             model_path: Path to LLM model for lyric generation
+            ollama: Whether to use Ollama for lyric generation (default: False)
         """
         self._pipeline = ace_step_pipeline  # Store the original pipeline reference
         self.random_mode = False 
