@@ -1257,7 +1257,10 @@ def create_radio_interface(radio: AIRadioStation):
     ) as demo:
         gr.Markdown("# 🎵 AI Radio Station")
         gr.Markdown("Continuous AI-powered music generation using ACE")
-        
+        if radio.ollama:
+            gr.Markdown("Ollama Model:")
+            gr.Markdown(radio.llm_model_path)
+
         # Add a timer component for automatic updates
         timer = gr.Timer(0.5, active=True)
         
@@ -1282,8 +1285,9 @@ def create_radio_interface(radio: AIRadioStation):
                         random_languages = gr.Checkbox(label="Randomize Languages (after the first song)", value=False)
                         if radio.ollama:
                             model_path_input = gr.File(
-                                label="Ollama model",
-                                value=radio.llm_model_path
+                                label="GGUF Model File (Ollama model used instead)",
+                                file_types=[".gguf"],
+                                value="gemma-3-12b-it-abliterated.q4_k_m.gguf"
                             )
                         else:
                             model_path_input = gr.File(
