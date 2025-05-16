@@ -1280,13 +1280,18 @@ def create_radio_interface(radio: AIRadioStation):
                         buffer_size = gr.Slider(1, 10, value=1, step=1, label="Buffer Size (songs)")
                         random_mode = gr.Checkbox(label="Continuous Random Mode (after the first song)", value=True)
                         random_languages = gr.Checkbox(label="Randomize Languages (after the first song)", value=False)
-                        if not radio.ollama:
+                        if radio.ollama:
+                            model_path_input = gr.File(
+                                label="Ollama model",
+                                value=radio.llm_model_path
+                            )
+                        else:
                             model_path_input = gr.File(
                                 label="GGUF Model File",
                                 file_types=[".gguf"],
                                 value="gemma-3-12b-it-abliterated.q4_k_m.gguf"
                             )
-                    
+
                     with gr.Tab("Advanced Settings"):
                         language_input = gr.Dropdown(
                             choices=list(SUPPORTED_LANGUAGES.keys()),
