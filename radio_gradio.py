@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from acestep.pipeline_ace_step import ACEStepPipeline
 import librosa
+import ollama
 
 
 # Constants and Configuration
@@ -289,7 +290,6 @@ class AIRadioStation:
         gc.collect()
         if self.llm is None:
             if self.ollama:
-                import ollama
                 self.llm = True
             else:
                 print("Loading LLM model...")
